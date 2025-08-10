@@ -14,7 +14,7 @@ builder.Services.AddOpenApi(options =>
         document.Servers = [];
         return Task.CompletedTask;
     });
-});
+});0
 
 var app = builder.Build();
 
