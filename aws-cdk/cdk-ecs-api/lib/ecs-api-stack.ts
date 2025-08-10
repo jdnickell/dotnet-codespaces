@@ -21,9 +21,17 @@ export class EcsApiStack extends cdk.Stack {
       }],
     });
 
-    // VPC
+    // VPC (single AZ, smallest possible)
     const vpc = new ec2.Vpc(this, 'ApiVpc', {
-      maxAzs: 2,
+      maxAzs: 1,
+      natGateways: 0, // No NAT, public only
+      subnetConfiguration: [
+        {
+          cidrMask: 24,
+          name: 'public',
+          subnetType: ec2.SubnetType.PUBLIC,
+        },
+      ],
     });
 
     // ECS Cluster
@@ -40,8 +48,8 @@ export class EcsApiStack extends cdk.Stack {
     // Fargate Service (minimal, placeholder image)
     const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, 'ApiFargateService', {
       cluster,
-      cpu: 256,
-      memoryLimitMiB: 512,
+      cpu: 256, // Smallest allowed by CDK for ALB Fargate
+      memoryLimitMiB: 512, // Smallest allowed by CDK for ALB Fargate
       desiredCount: 1,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry('amazon/amazon-ecs-sample'), // Replace with your API image
@@ -52,6 +60,7 @@ export class EcsApiStack extends cdk.Stack {
         },
       },
       publicLoadBalancer: true,
+      assignPublicIp: true, // Ensure public access
     });
   }
 }
